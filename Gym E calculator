@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro Gymnastics E-Score</title>
+    <style>
+        /* Modern Dark & Glassmorphism Theme */
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); 
+            margin: 0; 
+            padding: 20px; 
+            color: #ffffff; 
+            min-height: 100vh;
+        }
+        
+        .app-container { 
+            max-width: 480px; 
+            margin: 0 auto; 
+            background: rgba(255, 255, 255, 0.05); 
+            backdrop-filter: blur(15px); 
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 20px; 
+            padding: 25px; 
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+        }
+
+        h2 { text-align: center; color: #00e676; margin-top: 0; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
+        
+        /* Inputs */
+        .form-row { display: flex; gap: 10px; margin-bottom: 12px; }
+        .form-group { flex: 1; margin-bottom: 12px; }
+        .form-group label { display: block; margin-bottom: 6px; font-size: 0.9em; color: #b0bec5; letter-spacing: 0.5px; }
+        .form-group input, .form-group select { 
+            width: 100%; padding: 12px; border: none; border-radius: 8px; 
+            background: rgba(255,255,255,0.1); color: white; font-size: 16px; 
+            box-sizing: border-box; outline: none; transition: 0.3s;
+        }
+        .form-group input:focus, .form-group select:focus { background: rgba(255,255,255,0.2); box-shadow: 0 0 10px rgba(0, 230, 118, 0.3); }
+        .form-group select option { background: #203a43; color: white; }
+
+        /* Scoreboard */
+        .scoreboard { 
+            text-align: center; background: rgba(0,0,0,0.3); padding: 25px; 
+            border-radius: 16px; margin: 25px 0; border: 1px solid rgba(255,255,255,0.05);
+        }
+        .scoreboard p { margin: 0 0 5px 0; color: #b0bec5; font-size: 1.1em; text-transform: uppercase; letter-spacing: 1px;}
+        .score-display { font-size: 4.5em; font-weight: 900; margin: 0; color: #00e676; text-shadow: 0 0 20px rgba(0, 230, 118, 0.4); line-height: 1; }
+        .deduction-display { font-size: 1.2em; color: #ff5252; font-weight: bold; margin-top: 10px; display: block; }
+        
+        /* Buttons */
+        .button-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .btn { 
+            position: relative; padding: 20px 10px; font-size: 1.5em; font-weight: 800; border: none; 
+            border-radius: 12px; cursor: pointer; color: white; transition: all 0.15s; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .btn:active { transform: scale(0.95); }
+        .btn span { font-size: 0.5em; font-weight: normal; margin-top: 5px; opacity: 0.8; text-transform: uppercase; letter-spacing: 1px;}
+        
+        /* Click Counters on Buttons */
+        .click-badge {
+            position: absolute; top: -8px; right: -8px; background: white; color: #000;
+            border-radius: 50%; width: 26px; height: 26px; font-size: 14px; font-weight: bold;
+            display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            opacity: 0; transition: opacity 0.2s;
+        }
+        .click-badge.active { opacity: 1; }
+
+        .btn-small { background: linear-gradient(135deg, #f1c40f, #f39c12); color: #000; }
+        .btn-medium { background: linear-gradient(135deg, #e67e22, #d35400); }
+        .btn-large { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+        .btn-fall { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+        
+        .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .btn-undo { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); padding: 15px; border-radius: 10px; color: white; cursor: pointer; font-size: 1.1em; transition: 0.2s;}
+        .btn-undo:hover { background: rgba(255,255,255,0.2); }
+        .btn-save { background: #00e676; width: 100%; padding: 18px; font-size: 1.3em; border-radius: 12px; color: #000; border: none; cursor: pointer; font-weight: 800; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0, 230, 118, 0.4); text-transform: uppercase; transition: 0.2s;}
+        .btn-save:hover { background: #00c853; transform: translateY(-2px); }
+
+        /* History Section */
+        .history-section h3 { border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; color: #b0bec5; font-size: 1.1em; text-transform: uppercase; letter-spacing: 1px;}
+        .history-list { list-style: none; padding: 0; margin: 0; }
+        .history-item { background: rgba(0,0,0,0.2); margin-bottom: 12px; border-radius: 12px; border-left: 4px solid #00e676; overflow: hidden; transition: 0.3s;}
+        
+        .history-header { display: flex; justify-content: space-between; align-items: center; padding: 15px; cursor: pointer; }
+        .history-header:hover { background: rgba(255,255,255,0.05); }
+        .history-info strong { font-size: 1.2em; display: block; color: #fff; }
+        .history-info span { font-size: 0.9em; color: #90a4ae; }
+        .history-score { font-size: 1.6em; font-weight: 900; color: #00e676; display: flex; align-items: center; gap: 15px;}
+        
+        /* Dropdown Details */
+        .history-details { background: rgba(0,0,0,0.4); padding: 15px; display: none; font-size: 0.95em; border-top: 1px solid rgba(255,255,255,0.05);}
+        .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;}
+        .detail-box { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; text-align: center; }
+        .detail-box strong { display: block; font-size: 1.4em; margin-bottom: 3px;}
+        
+        /* Sequence Timeline Styles */
+        .sequence-box { background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; margin-bottom: 15px; }
+        .sequence-box p { margin: 0 0 10px 0; font-size: 0.85em; color: #b0bec5; text-transform: uppercase; letter-spacing: 1px; }
+        .sequence-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+        .seq-tag { padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 0.9em; background: rgba(255,255,255,0.1); }
+        .seq-arrow { color: #546e7a; font-size: 0.8em; }
+
+        .delete-btn { background: rgba(255, 82, 82, 0.2); border: 1px solid #ff5252; color: #ff5252; cursor: pointer; padding: 8px 12px; border-radius: 6px; font-weight: bold; width: 100%; transition: 0.2s;}
+        .delete-btn:hover { background: #ff5252; color: white; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <h2>E-Score Pro</h2>
+
+    <!-- Athlete Details -->
+    <div class="form-group">
+        <input type="text" id="athName" placeholder="Athlete Name">
+    </div>
+    <div class="form-row">
+        <div class="form-group" style="flex: 0.5;">
+            <input type="number" id="athAge" placeholder="Age">
+        </div>
+        <div class="form-group">
+            <select id="apparatus">
+                <option value="Vault">Vault</option>
+                <option value="Uneven Bars">Uneven Bars</option>
+                <option value="Balance Beam">Balance Beam</option>
+                <option value="Floor Exercise">Floor</option>
+                <option value="Pommel Horse">Pommel Horse</option>
+                <option value="Still Rings">Still Rings</option>
+                <option value="Parallel Bars">Parallel Bars</option>
+                <option value="Horizontal Bar">Horizontal Bar</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Live Scoreboard -->
+    <div class="scoreboard">
+        <p>Live Execution Score</p>
+        <div class="score-display" id="eScoreDisplay">10.00</div>
+        <div class="deduction-display">Deductions: -<span id="deductionDisplay">0.00</span></div>
+    </div>
+
+    <!-- Deduction Buttons with Trackers -->
+    <div class="button-grid">
+        <button class="btn btn-small" onclick="addDeduction(0.1)">
+            - 0.1 <span>Small</span>
+            <div class="click-badge" id="badge-0.1">0</div>
+        </button>
+        <button class="btn btn-medium" onclick="addDeduction(0.3)">
+            - 0.3 <span>Medium</span>
+            <div class="click-badge" id="badge-0.3">0</div>
+        </button>
+        <button class="btn btn-large" onclick="addDeduction(0.5)">
+            - 0.5 <span>Large</span>
+            <div class="click-badge" id="badge-0.5">0</div>
+        </button>
+        <button class="btn btn-fall" onclick="addDeduction(1.0)">
+            - 1.0 <span>Fall</span>
+            <div class="click-badge" id="badge-1.0">0</div>
+        </button>
+    </div>
+
+    <div class="action-grid">
+        <button class="btn-undo" onclick="undoDeduction()">↩ Undo Last</button>
+        <button class="btn-undo" onclick="resetCalculator()">⟳ Reset All</button>
+    </div>
+
+    <button class="btn-save" onclick="saveData()">Save Routine Data</button>
+
+    <!-- History Section -->
+    <div class="history-section">
+        <h3>Saved Routines (Click to expand)</h3>
+        <ul class="history-list" id="historyList">
+            <!-- Saved items will appear here -->
+        </ul>
+    </div>
+</div>
+
+<script>
+    let deductionHistory = []; // This array tracks the exact sequence of clicks
+    let currentEScore = 10.00;
+    let totalDeductions = 0.00;
+    
+    // Tracking how many times each button is clicked
+    let deductionCounts = {
+        '0.1': 0, '0.3': 0, '0.5': 0, '1.0': 0
+    };
+
+    window.onload = function() {
+        renderHistory();
+    };
+
+    // Add a deduction
+    function addDeduction(amount) {
+        deductionHistory.push(amount); // Adds to the sequence array
+        let key = amount.toFixed(1);
+        deductionCounts[key]++;
+        updateScoreUI();
+    }
+
+    // Undo the last deduction
+    function undoDeduction() {
+        if (deductionHistory.length > 0) {
+            let lastAmount = deductionHistory.pop(); // Removes last item from sequence array
+            let key = lastAmount.toFixed(1);
+            if (deductionCounts[key] > 0) {
+                deductionCounts[key]--;
+            }
+            updateScoreUI();
+        }
+    }
+
+    // Reset current live calculator
+    function resetCalculator() {
+        if(confirm("Reset live score back to 10.00?")) {
+            deductionHistory = [];
+            deductionCounts = { '0.1': 0, '0.3': 0, '0.5': 0, '1.0': 0 };
+            updateScoreUI();
+        }
+    }
+
+    // Update UI (Score + Button Badges)
+    function updateScoreUI() {
+        totalDeductions = deductionHistory.reduce((a, b) => a + b, 0);
+        currentEScore = 10.00 - totalDeductions;
+
+        document.getElementById('eScoreDisplay').innerText = currentEScore.toFixed(2);
+        document.getElementById('deductionDisplay').innerText = totalDeductions.toFixed(2);
+
+        updateBadge('0.1'); updateBadge('0.3'); updateBadge('0.5'); updateBadge('1.0');
+    }
+
+    function updateBadge(key) {
+        let badge = document.getElementById('badge-' + key);
+        let count = deductionCounts[key];
+        badge.innerText = count;
+        if (count > 0) { badge.classList.add('active'); } 
+        else { badge.classList.remove('active'); }
+    }
+
+    // Save Data
+    function saveData() {
+        let name = document.getElementById('athName').value;
+        let age = document.getElementById('athAge').value;
+        let apparatus = document.getElementById('apparatus').value;
+
+        if (name.trim() === '' || age.trim() === '') {
+            alert('Please enter Athlete Name and Age!');
+            return;
+        }
+
+        let record = {
+            id: Date.now(),
+            name: name,
+            age: age,
+            apparatus: apparatus,
+            eScore: currentEScore.toFixed(2),
+            deductions: totalDeductions.toFixed(2),
+            breakdown: { ...deductionCounts }, 
+            sequence: [...deductionHistory] // Saves the exact order of clicks
+        };
+
+        let history = JSON.parse(localStorage.getItem('gymnasticsAppHistory')) || [];
+        history.unshift(record); 
+        localStorage.setItem('gymnasticsAppHistory', JSON.stringify(history));
+
+        renderHistory();
+        
+        document.getElementById('athName').value = '';
+        document.getElementById('athAge').value = '';
+        deductionHistory = [];
+        deductionCounts = { '0.1': 0, '0.3': 0, '0.5': 0, '1.0': 0 };
+        updateScoreUI();
+    }
+
+    // Toggle Dropdown in History
+    function toggleDetails(id) {
+        let detailsDiv = document.getElementById('details-' + id);
+        if (detailsDiv.style.display === 'block') {
+            detailsDiv.style.display = 'none';
+        } else {
+            detailsDiv.style.display = 'block';
+        }
+    }
+
+    // Get color for specific deduction
+    function getColor(ded) {
+        if(ded === 0.1) return '#f1c40f'; // Yellow
+        if(ded === 0.3) return '#e67e22'; // Orange
+        if(ded === 0.5) return '#e74c3c'; // Red
+        if(ded === 1) return '#9b59b6';   // Purple
+        return '#fff';
+    }
+
+    // Render Saved Data
+    function renderHistory() {
+        let history = JSON.parse(localStorage.getItem('gymnasticsAppHistory')) || [];
+        let listElement = document.getElementById('historyList');
+        listElement.innerHTML = '';
+
+        history.forEach(record => {
+            let li = document.createElement('li');
+            li.className = 'history-item';
+            
+            // Build the sequence HTML timeline
+            let sequenceHtml = '';
+            if(record.sequence && record.sequence.length > 0) {
+                sequenceHtml = record.sequence.map(ded => {
+                    return `<span class="seq-tag" style="color: ${getColor(ded)}">-${ded.toFixed(1)}</span>`;
+                }).join('<span class="seq-arrow">➔</span>');
+            } else {
+                sequenceHtml = '<span style="color:#90a4ae; font-size: 0.9em;">No deductions (Perfect Routine)</span>';
+            }
+
+            // Format HTML for the clickable dropdown
+            li.innerHTML = `
+                <div class="history-header" onclick="toggleDetails(${record.id})">
+                    <div class="history-info">
+                        <strong>${record.name} (Age: ${record.age})</strong>
+                        <span>${record.apparatus} | Total Ded: -${record.deductions}</span>
+                    </div>
+                    <div class="history-score">
+                        ${record.eScore} 
+                        <span style="font-size: 0.5em; color: #b0bec5; margin-left: 5px;">▼</span>
+                    </div>
+                </div>
+                <div class="history-details" id="details-${record.id}">
+                    
+                    <!-- Exact Timeline Sequence -->
+                    <div class="sequence-box">
+                        <p>Timeline Sequence</p>
+                        <div class="sequence-tags">
+                            ${sequenceHtml}
+                        </div>
+                    </div>
+
+                    <!-- Total Deduction Counts -->
+                    <div class="details-grid">
+                        <div class="detail-box">
+                            <strong>${record.breakdown['0.1']}</strong>
+                            <span style="color:#f1c40f">0.1 (Small)</span>
+                        </div>
+                        <div class="detail-box">
+                            <strong>${record.breakdown['0.3']}</strong>
+                            <span style="color:#e67e22">0.3 (Medium)</span>
+                        </div>
+                        <div class="detail-box">
+                            <strong>${record.breakdown['0.5']}</strong>
+                            <span style="color:#e74c3c">0.5 (Large)</span>
+                        </div>
+                        <div class="detail-box">
+                            <strong>${record.breakdown['1.0']}</strong>
+                            <span style="color:#9b59b6">1.0 (Fall)</span>
+                        </div>
+                    </div>
+                    
+                    <button class="delete-btn" onclick="deleteRecord(${record.id})">Delete Routine</button>
+                </div>
+            `;
+            listElement.appendChild(li);
+        });
+    }
+
+    function deleteRecord(id) {
+        if(confirm("Are you sure you want to delete this routine?")) {
+            let history = JSON.parse(localStorage.getItem('gymnasticsAppHistory')) || [];
+            history = history.filter(record => record.id !== id);
+            localStorage.setItem('gymnasticsAppHistory', JSON.stringify(history));
+            renderHistory();
+        }
+    }
+</script>
+
+</body>
+</html>
